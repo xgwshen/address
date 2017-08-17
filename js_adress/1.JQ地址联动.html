@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="cn">
+<head>
+    <meta charset="UTF-8">
+    <title>JQ</title>
+    <script src="jquery-1.8.3.min.js"></script>
+</head>
+<body>
+
+    <h1>请选择您的地址:</h1>
+    <hr>
+    <select id="pro"></select>
+    <select id="city"></select>
+    <select id="area"></select>
+    <select id="street"></select>
+
+
+    <script>
+        //获取省份信息
+        $.ajax({
+            type: 'get',
+            url: './address.php',
+            dataType:'json',
+            async: false,//同步
+            success: function(data){
+                //先清空之前的信息
+                $('#pro').empty();
+                //遍历省份信息
+                for (var i = 0; i < data.length; i++) {
+                    $('<option value="'+data[i].id+'">'+data[i].name+'</option>').appendTo('#pro');
+                };
+            }
+        });
+
+
+        //绑定change事件
+        $('#pro,#city,#area').change(function(){
+            //先清空之前的信息
+            $(this).nextAll('select').show().empty();
+
+            //获取当前的upid的值
+            var upid = $(this).val();
+            // console.log(upid);
+            // 保留$(this) 变量
+            var _this = $(this);
+            // console.log($(this));
+
+            //请求下一级数据
+            $.ajax({
+                type:'get',
+                url:'./address.php',
+                data: 'upid='+upid,
+                dataType:'json',
+                success:function(data){
+                    //如果下一级没有数据,返回false,应该隐藏多余的下拉框
+                    if (!data) {
+                        _this.nextAll('select').hide();
+                        return;
+                    }
+
+                    /*console.log($(this));
+                    console.log($(this).constructor);*/
+                    // console.log(_this);
+                    
+                    // 下一级数据填充
+                    for (var i = 0; i < data.length; i++) {
+                        $('<option value="'+data[i].id+'">'+data[i].name+'</option>').appendTo(_this.next('select'));
+                    }
+                    //自动触发后面select 的 change事件
+                    _this.next('select').trigger('change');
+                }
+            });
+
+        })
+
+
+        //自动触发 #pro 的change事件
+        $('#pro').trigger('change');
+
+    </script>
+    
+</body>
+</html>
+
